@@ -147,8 +147,22 @@ plot_grid(p3, c4, ncol = 1, align = "h")
 > Although these plots do not tell the whole story, they are great for helping us determine where to look. Different cities may have different populations, population densities, cultural discrepancies, compliance, and city regulations to name a few. We will explore the role of population on these metrics using visualizations. Arrange two scatter plots using cowplot’s plot_grid to show the relationship between population and confirmed counts as well as death counts and confirmed counts. You will need to use a log transform on all variables to show such a relationship. Please consult the example below for an idea of what this may look like. From these graphs we can see that population greatly affects confirmations and deaths. This coincides with our plots above as Los Angeles’s population is 301% greater than San Diego’s population and 406% greater than Riverside’s population!
 
 ```{r, include=TRUE, echo=TRUE}
+## Population of CA cities
+confirmed_us$sum_rows <- rowSums(confirmed_us[,12:ncol(confirmed_us)])
+g1 <- data.frame(confirmed_us$Admin2, confirmed_us$sum_rows, death_us$Population)
+gg <- ggplot(g1, aes(x=death_us.Population, y=confirmed_us.sum_rows)) + geom_point(color="red") + scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") + labs(x="US population", y="US Confirmed cases", title = "Graph 1: US Confirmed vs population")
+
+## Make death vs confirmation for CA
+death_us$sum_rows <- rowSums(death_us[,13:ncol(death_us)])
+g2 <- data.frame(confirmed_us$sum_rows, death_us$sum_rows)
+ggg <- ggplot(g2, aes(x=confirmed_us.sum_rows, y=death_us.sum_rows)) + geom_point(color="blue") + scale_x_continuous(trans = "log10") + scale_y_continuous(trans = "log10") + labs(x="US Confirmed cases", y="US Death", title = "Graph 2: US Confirmed vs Death")
+
+## Use plot_grid
+plot_grid(gg, ggg)
 
 ```
+
+> Graph 1 graphs the population of each city across the country with the sum of confirmed cases from the past few months. Graph 2 has the sum of confirmed cases of each city as its x-axis and y-axis as the total sum of death per city. The purpose of this excercise is to demonstarte and further support the hypothesis that there is a correlation between the magnitude of population and confirmed cases/death. Graph 1 shows that has population increases, the confirmed cases increases. Graph 2 exhibits that has cases increase, so do the number of death. Therefore, it would be safe to conclude the hypothesis that the greater the population, the greater the death. Another indicator that universal healthcare is a necessity. 
 
 #### GitHub repo: [csit165_project2](https://github.com/unleel/csit165_project2)
 ### GitHub Log
