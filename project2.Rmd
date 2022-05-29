@@ -52,12 +52,21 @@ library(tidyr)
 confirmed_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
 death_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
 
+confirmed_who_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+
+death_who_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
 # Download files to local; curl and wget not available
 download.file(confirmed_url, basename(confirmed_url))
 download.file(death_url, basename(death_url))
+download.file(confirmed_who_url, basename(confirmed_who_url))
+download.file(death_who_url, basename(death_who_url))
+
 
 confirmed_us <- read_csv(url(confirmed_url))
 death_us <- read_csv(url(death_url))
+confirmed_who <-read_csv(url(confirmed_who_url))
+death_who <-read_csv(url(death_who_url))
+
 ```
 
 ### Project Objectives
@@ -77,6 +86,32 @@ death_us <- read_csv(url(death_url))
 > Seeing the global map of COVID-19 cases results in the stark realization that some countries are more affected than others. In order to narrow down your studies, create a table using kable from knitr listing the top countries as far as confirmations and deaths (sum values for provinces of the same country into one value and show the country only). Now that we are using RMarkdown to create HTML files, we have much more options for how we display our table. For reference on how to customize tables using knitr, visit this website. Consult the table below for an example of a customized table ranking cases by country. While it is not required to replicate this table exactly, it would be a fantastic challenge to show off your knitr prowess.
 
 ```{r, include=TRUE, echo=TRUE}
+# sort death data
+death_who %<>% select(-Lat, -Long)
+death_who$sum_rows <- rowSums(death_who[,3:ncol(death_who)])
+death_who %<>% select(1,2,ncol(death_who))
+death_who %<>% group_by(`Country/Region`) %>% summarize(total_death = sum(sum_rows))
+death_who %<>% arrange(desc(total_death))
+death_who$Rank <- c(1:nrow(death_who))
+death_who1 <- death_who[,c("Rank", "Country/Region", "total_death")]
+
+
+# sort confirmation data
+confirmed_who %<>% select(-Lat, -Long)
+confirmed_who$sum_rows <- rowSums(confirmed_who[,3:ncol(confirmed_who)])
+confirmed_who %<>% select(1,2,ncol(confirmed_who))
+confirmed_who %<>% group_by(`Country/Region`) %>% summarize(total_confirmations = sum(sum_rows))
+confirmed_who %<>% arrange(desc(total_confirmations))
+confirmed_who$Rank <- c(1:nrow(confirmed_who))
+confirmed_who1 <- confirmed_who[,c("Rank", "Country/Region", "total_confirmations")]
+
+## Make tables
+kbl(confirmed_who1, caption = "Confirmations") %>% kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% scroll_box(width = "500px", height = "200px")
+
+kbl(death_who1, caption = "Deaths") %>% kable_styling(bootstrap_options = "striped", full_width = F, position = "left") %>% scroll_box(width = "500px", height = "200px")
+
+
+
 
 ```
 
@@ -166,6 +201,3 @@ plot_grid(gg, ggg)
 
 #### GitHub repo: [csit165_project2](https://github.com/unleel/csit165_project2)
 ### GitHub Log
-##```{bash gitlog} 
-##git log --pretty=format:"%nSubject: %s%nAuthor: %aN%nDate: %aD%nBody: %b"
-##```
